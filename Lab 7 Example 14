@@ -1,0 +1,93 @@
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Example 17 - 2.5D Tree Density</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    .map-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div class="map-overlay">
+  <label for="genus_toggle">Select Tree Genus:</label>
+  <select id="genus_toggle">
+    <option value="0">All</option>
+    <option value="1">Ash</option>
+    <option value="2">Crabapple</option>
+    <option value="3">Elm</option>
+    <option value="4">Hackberry</option>
+    <option value="5">Honeylocust</option>
+    <option value="6">Linden</option>
+    <option value="7">Maple</option>
+    <option value="8">Oak</option>
+    <option value="9">Pine</option>
+    <option value="10">Spruce</option>
+  </select>
+</div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoicGhhdGJsYWRlIiwiYSI6ImNtODUwbnY5OTA1NzMyanBwNHoycWM1MnYifQ.PJFemYJdcTr9g9yfM4jG2A';
+var map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/phatblade/cm9ilhbow002x01so8xs875ag',
+  center: [-104.951046, 39.732470],
+  zoom: 11,
+  pitch: 50
+});
+
+const genusList = [
+  'n_all','n_Ash','n_Crabapple','n_Elm','n_Hackberry','n_Honeylocust','n_Linden','n_Maple','n_Oak','n_Pine','n_Spruce'
+];
+const maxHeights = [
+  725,199,102,108,48,182,140,171,170,254,94
+];
+
+map.on('load', () => {
+  map.setLight({ color: '#fff', intensity: 0.4, position: [1.5, 180, 30] });
+  map.addControl(new mapboxgl.NavigationControl());
+
+  map.addLayer({
+    id: 'hex-3d',
+    type: 'fill-extrusion',
+    source: {
+      type: 'vector',
+      url: 'mapbox://phatblade.b3bxealx'
+    },
+    'source-layer': 'Denver_tree_top_10_genus-75f9ax', // FIX THIS
+    paint: {
+      'fill-extrusion-color': [
+        'interpolate', ['linear'], ['get', 'n_all'], 0, 'white', 725, '#2c7fb8'
+      ],
+      'fill-extrusion-height': ['*', 2, ['get', 'n_all']],
+      'fill-extrusion-opacity': 0.85
+    }
+  });
+});
+
+document.getElementById('genus_toggle').addEventListener('change', function(e) {
+  const index = parseInt(e.target.value);
+  const field = genusList[index];
+  const max = maxHeights[index];
+
+  map.setPaintProperty('hex-3d', 'fill-extrusion-color', [
+    'interpolate', ['linear'], ['get', field], 0, 'white', max, '#2c7fb8'
+  ]);
+  map.setPaintProperty('hex-3d', 'fill-extrusion-height', ['*', 2, ['get', field]]);
+});
+</script>
+</body>
+</html>
